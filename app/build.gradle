@@ -1,10 +1,16 @@
 plugins {
+    //Google services is necessary for Firebase
+    id 'com.google.gms.google-services'
+
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
 }
 
 android {
-    namespace 'com.example.advancedkotlin'
+        buildFeatures {
+            viewBinding = true
+        }
+        namespace 'com.example.advancedkotlin'
     compileSdk 33
 
     defaultConfig {
@@ -33,6 +39,12 @@ android {
 }
 
 dependencies {
+    //Firebase dependencies
+    implementation 'com.google.firebase:firebase-firestore:23.0.3'
+    implementation 'com.google.firebase:firebase-database:20.0.2'
+    implementation 'com.google.firebase:firebase-auth:20.0.1'
+    implementation 'com.google.firebase:firebase-database-ktx:20.1.0'
+
 
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.1'
