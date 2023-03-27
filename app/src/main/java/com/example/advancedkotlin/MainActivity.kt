@@ -1,116 +1,140 @@
-// Import necessary packages
-package com.example.advancedkotlin
+package com.example.advancedkotlin // Sovelluksen paketin nimi.
 
-import android.graphics.Color
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.PropertyName
-import com.example.advancedkotlin.databinding.ActivityMainBinding
-import com.example.advancedkotlin.databinding.ItemLayoutBinding
+import android.graphics.Color // Tarvitaan Tummalle taustavärille kun valitaan teksti, jota halutaan muokata tai poistaa (rivi 148)
+import android.view.LayoutInflater // XML tiedostojen muuttamista view-olioksi (rivi 131)
+import android.view.ViewGroup // Viewholder olion säiliö (rivi 126)
+import androidx.recyclerview.widget.RecyclerView //Resycleview on lista jota voi selata alaspäin (rivit 120 ja 123)
+import androidx.appcompat.app.AppCompatActivity // Tukikirjasto joka parantaa yhteensopivuutta (rivi 15)
+import android.os.Bundle // Käytetään datan siirtoon aktiviteettien välillä. (rivi 24)
+import androidx.recyclerview.widget.LinearLayoutManager // Lajittelee RecycleViewin listan lineaarisesti. (Rivi 34)
+import com.google.firebase.firestore.FirebaseFirestore // Tällä luokalla päästään käsiksi Firebase tietokantaan. (Rivi 19)
+import com.google.firebase.firestore.PropertyName // Firebase luokka joka mahdollistaa kenttien nimen hakemisne dokumentista tai kokoelmasta.
+import com.example.advancedkotlin.databinding.ActivityMainBinding //Databinding luokka joka mahdollistaa acitivity_main.xml sitomisen
+import com.example.advancedkotlin.databinding.ItemLayoutBinding //Databinding luokka joka mahdollistaa item_layout.xml sitomisen
 
-// MainActivity class
 class MainActivity : AppCompatActivity() {
 
-    // Initialize view binding, Firebase Firestorm, item list, and item adapter
+    // Alustetaan viewbinding, Firebase tietokanta, itemList, ja itemAdapter
     private lateinit var binding: ActivityMainBinding
     private val db = FirebaseFirestore.getInstance()
     private val itemList = mutableListOf<Item>()
     private lateinit var itemAdapter: ItemAdapter
 
-    // OnCreate method
+    // OnCreate metodi suoritetaan aina, kun sovellus käynnistetään tai kun sovellusprosessi on luotu uudelleen.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Inflate the layout using view binding
+        // Käytetään view bindingiä näkymän inflatoimiseen
         binding = ActivityMainBinding.inflate(layoutInflater)
+        // Asetetaan aktiviteetin näkymän juurielementiksi (root)
         setContentView(binding.root)
 
-        // Initialize the item adapter and RecyclerView
+        // itemAdapter ja RecyclerView olion luonti
         itemAdapter = ItemAdapter(itemList)
         binding.rvItems.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = itemAdapter
         }
-        // Load data from Firebase
+        // Datan lataus Firebasesta
         loadData()
-        // Set onClickListener for add button
-        binding.btnAdd.setOnClickListener {
-            // Add item to Firebase and update UI
+
+        // Asetetaan onClickListener "Create" napille
+        binding.btnCreate.setOnClickListener {
+            // Kun painetaa "Create" Luodaan nimetty tiedosto Firebaseen ja päivitetään käyttöliittymä.
             val name = binding.etName.text.toString()
+            //Nimikenttä ei saa olla tyhjä, muuten tiedostoa ei lisätä.
             if (name.isNotBlank()) {
                 addItem(name)
                 binding.etName.setText("")
             }
         }
 
-        // Set onClickListener for update button
+        // Asetetaan onClickListener "Update" napille
         binding.btnUpdate.setOnClickListener {
-            // Update selected item in Firebase and update UI
+            // Kun painetaa "Update" päivitetään valittu tiedosto Firebaseen ja päivitetään käyttöliittymä.
             val name = binding.etName.text.toString()
+            //Nimikenttä ei saa olla tyhjä, muuten tiedostoa ei lisätä.
             if (name.isNotBlank()) {
                 updateItem(name)
                 binding.etName.setText("")
             }
         }
 
-        // Set onClickListener for delete button
+        // Asetetaan onClickListener "Delete" napille.
         binding.btnDelete.setOnClickListener {
-            // Delete selected item from Firebase and update UI
+            //  Kun "Delete" painetaan, poistetaan valittu tiedosto Firebasesta ja päivitetään käyttöliittymä.
             deleteItem()
         }
     }
 
-    // Load data from Firebase
+    // READ
     private fun loadData() {
+        // Noudetaan kaikki dokumentit "items" kokoelmasta
         db.collection("items").get().addOnSuccessListener { documents ->
-            // Iterate through documents and add them to the item list
+            // Loopataan kaikki dokumentit läpi ja tehdään uusi Item objekti jokaisesta dokumentista
             for (document in documents) {
                 val item = Item(document.id, document.getString("name") ?: "")
+                // Lisätään uusi Item objekti itemListiin
                 itemList.add(item)
             }
-            // Notify the adapter that the data set has changed
+            // Ilmoitetaan adapterille että data on muuttunut
             itemAdapter.notifyDataSetChanged()
         }
     }
 
-    // Add item to Firebase and update UI
+    // CREATE
     private fun addItem(name: String) {
+        // Luodaan uusi objekti tyhjällä id:llä ja annetulla nimellä
         val newItem = Item("", name)
+        // Lisätään uusi "items" objekti Firestore kokoelmaan
+        // Lisätään OnSuccessListeneri jota kutsutaan kun operaatio on valmis
         db.collection("items").add(newItem).addOnSuccessListener { documentReference ->
+            // Päivitetään uuden objektin id Firestoren generoimalla id:llä
             newItem.id = documentReference.id
+            // Lisätään uusi objekti itemListiin,
             itemList.add(newItem)
+            // Ilmoitetaan RecycleView adapterille että uusi objekti on lisätty
             itemAdapter.notifyItemInserted(itemList.size - 1)
         }
     }
 
-    // Update selected item in Firebase and update UI
+    // UPDATE
     private fun updateItem(name: String) {
+        // Etsii valitun objektin itemLististä ja tallettaa sen selectedItemiin
         val selectedItem = itemList.find { it.isSelected }
+        // Jos selectedItem ei ole null
         selectedItem?.let { item ->
+            // Päivitä valitun objektin nimi
             item.name = name
+            // Aseta isSelected falseksi, niin objekti ei ole enää valittuna
             item.isSelected = false
+            // Päivittää objektin nimi kentän Firebase tietokantaan, jolla on sama id
             db.collection("items").document(item.id).update("name", name).addOnSuccessListener {
+                // Ilmoita adapterille että itemList on päivitetty
                 itemAdapter.notifyDataSetChanged()
             }
         }
     }
 
-    // Delete selected item from Firebase and update UI
+
+    // DELETE
     private fun deleteItem() {
+        // Etsi valittu objekti itemLististä
         val selectedItem = itemList.find { it.isSelected }
+        // Jos selectedItem ei ole null poista se tietokannasta ja itemLististä
         selectedItem?.let { item ->
+            // Poista objekti Firebasen "items" kokoelmasta
             db.collection("items").document(item.id).delete().addOnSuccessListener {
+                // Jos poistaminen on onnistunut, poista objekti itemLististä
                 itemList.remove(item)
+                // Ilmoita itemAdapterille että data on muuttunut
                 itemAdapter.notifyDataSetChanged()
             }
         }
     }
 
+
+    //Data luokka, eli mitä tietokantaan tallennetaan
     data class Item(
         @get:PropertyName("id") @set:PropertyName("id") var id: String = "",
         @get:PropertyName("name") @set:PropertyName("name") var name: String = "",
@@ -126,29 +150,29 @@ class MainActivity : AppCompatActivity() {
 
         // Called when RecyclerView needs a new ViewHolder
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            // Inflate the item layout and return a new ViewHolder
+            // Käyttää LayoutInflateria muuntamaan XML-tiedoston layoutiksi.
             val binding =
                 ItemLayoutBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             return ViewHolder(binding)
         }
 
-        // Called when RecyclerView wants to bind data to a ViewHolder
+        // Kutsutaan kun RecyclerView haluaa bindata dataa ViewHolderiin
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            // Get the item at the given position
+            // ottaa tiedoston halutusta paikasta
             val item = items[position]
-            // Bind the item's name to the TextView in the ViewHolder's layout
+            // Bindaa tiedoston nimi TextViewiin, ViewHolder layoutissa
             holder.binding.tvName.text = item.name
-            // Set an OnClickListener for the ViewHolder's root view
+            // OnClickListeneri ViewHolder's root näkymään
             holder.binding.root.setOnClickListener {
-                // Toggle the selected state of the item and update the UI
+                // Laittaa päälle/pois valitun tiedoston tilan ja päivittää käyttöliittymän
                 item.isSelected = !item.isSelected
                 notifyDataSetChanged()
             }
-            // Set the background color of the ViewHolder's root view based on the selected state of the item
+            // Valitun tiedoston tausta muuttuu tummaksi kun se on valittu
             holder.binding.root.setBackgroundColor(if (item.isSelected) Color.LTGRAY else Color.WHITE)
         }
 
-        // Called when RecyclerView needs to know how many items are in the data set
+        // Kutsutaan kun RecyclerViewin tarvitsee tietää kuinka monta tiedostoa on data setissä
         override fun getItemCount(): Int = items.size
     }
 
