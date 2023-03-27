@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnUpdate.setOnClickListener {
             // Kun painetaa "Update" päivitetään valittu tiedosto Firebaseen ja päivitetään käyttöliittymä.
             val name = binding.etName.text.toString()
+            //Nimikenttä ei saa olla tyhjä, muuten tiedostoa ei lisätä.
             if (name.isNotBlank()) {
                 updateItem(name)
                 binding.etName.setText("")
@@ -66,51 +67,72 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Ladataan dataa Firebasesta
+    // READ
     private fun loadData() {
+        // Noudetaan kaikki dokumentit "items" kokoelmasta
         db.collection("items").get().addOnSuccessListener { documents ->
-            // Käydään läpi tietokanta ja lisätään ne listalle
+            // Loopataan kaikki dokumentit läpi ja tehdään uusi Item objekti jokaisesta dokumentista
             for (document in documents) {
                 val item = Item(document.id, document.getString("name") ?: "")
+                // Lisätään uusi Item objekti itemListiin
                 itemList.add(item)
             }
-            // Ilmoittaa adapterille jos data on muuttunut
+            // Ilmoitetaan adapterille että data on muuttunut
             itemAdapter.notifyDataSetChanged()
         }
     }
 
-    // Lisätään tiedosto Firebaseen ja päivitetään käyttöliittymä
+    // CREATE
     private fun addItem(name: String) {
+        // Luodaan uusi objekti tyhjällä id:llä ja annetulla nimellä
         val newItem = Item("", name)
+        // Lisätään uusi "items" objekti Firestore kokoelmaan
+        // Lisätään OnSuccessListeneri jota kutsutaan kun operaatio on valmis
         db.collection("items").add(newItem).addOnSuccessListener { documentReference ->
+            // Päivitetään uuden objektin id Firestoren generoimalla id:llä
             newItem.id = documentReference.id
+            // Lisätään uusi objekti itemListiin,
             itemList.add(newItem)
+            // Ilmoitetaan RecycleView adapterille että uusi objekti on lisätty
             itemAdapter.notifyItemInserted(itemList.size - 1)
         }
     }
 
-    // Päivitetään valittu tiedosto Firebaseen ja päivitetään käyttöliittymä
+    // UPDATE
     private fun updateItem(name: String) {
+        // Etsii valitun objektin itemLististä ja tallettaa sen selectedItemiin
         val selectedItem = itemList.find { it.isSelected }
+        // Jos selectedItem ei ole null
         selectedItem?.let { item ->
+            // Päivitä valitun objektin nimi
             item.name = name
+            // Aseta isSelected falseksi, niin objekti ei ole enää valittuna
             item.isSelected = false
+            // Päivittää objektin nimi kentän Firebase tietokantaan, jolla on sama id
             db.collection("items").document(item.id).update("name", name).addOnSuccessListener {
+                // Ilmoita adapterille että itemList on päivitetty
                 itemAdapter.notifyDataSetChanged()
             }
         }
     }
 
-    // Poistetaan valittu tiedosto Firebasesta ja päivitetään käyttöliittymä
+
+    // DELETE
     private fun deleteItem() {
+        // Etsi valittu objekti itemLististä
         val selectedItem = itemList.find { it.isSelected }
+        // Jos selectedItem ei ole null poista se tietokannasta ja itemLististä
         selectedItem?.let { item ->
+            // Poista objekti Firebasen "items" kokoelmasta
             db.collection("items").document(item.id).delete().addOnSuccessListener {
+                // Jos poistaminen on onnistunut, poista objekti itemLististä
                 itemList.remove(item)
+                // Ilmoita itemAdapterille että data on muuttunut
                 itemAdapter.notifyDataSetChanged()
             }
         }
     }
+
 
     //Data luokka, eli mitä tietokantaan tallennetaan
     data class Item(
