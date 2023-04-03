@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity // Tukikirjasto joka parantaa yh
 import android.os.Bundle // Käytetään datan siirtoon aktiviteettien välillä. (rivi 24)
 import androidx.recyclerview.widget.LinearLayoutManager // Lajittelee RecycleViewin listan lineaarisesti. (Rivi 34)
 import com.google.firebase.firestore.FirebaseFirestore // Tällä luokalla päästään käsiksi Firebase tietokantaan. (Rivi 19)
-import com.google.firebase.firestore.PropertyName // Firebase luokka joka mahdollistaa kenttien nimen hakemisne dokumentista tai kokoelmasta.
+import com.google.firebase.firestore.PropertyName // Firebase luokka joka mahdollistaa kenttien nimen hakemisen dokumentista tai kokoelmasta.
 import com.example.advancedkotlin.databinding.ActivityMainBinding //Databinding luokka joka mahdollistaa acitivity_main.xml sitomisen
 import com.example.advancedkotlin.databinding.ItemLayoutBinding //Databinding luokka joka mahdollistaa item_layout.xml sitomisen
 
