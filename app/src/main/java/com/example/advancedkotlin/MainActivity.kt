@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
 
         // Asetetaan onClickListener "Create" napille
         binding.btnCreate.setOnClickListener {
-            // Kun painetaa "Create" Luodaan nimetty tiedosto Firebaseen ja päivitetään käyttöliittymä.
+            // Kun painetaan "Create" Luodaan nimetty tiedosto Firebaseen ja päivitetään käyttöliittymä.
             val name = binding.etName.text.toString()
             //Nimikenttä ei saa olla tyhjä, muuten tiedostoa ei lisätä.
             if (name.isNotBlank()) {
@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
 
         // Asetetaan onClickListener "Update" napille
         binding.btnUpdate.setOnClickListener {
-            // Kun painetaa "Update" päivitetään valittu tiedosto Firebaseen ja päivitetään käyttöliittymä.
+            // Kun painetaan "Update" päivitetään valittu tiedosto Firebaseen ja päivitetään käyttöliittymä.
             val name = binding.etName.text.toString()
             //Nimikenttä ei saa olla tyhjä, muuten tiedostoa ei lisätä.
             if (name.isNotBlank()) {
